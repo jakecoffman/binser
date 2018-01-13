@@ -5,8 +5,8 @@ import (
 	"math"
 )
 
-func TestBuffer(t *testing.T) {
-	b := NewBuffer(10)
+func TestStream(t *testing.T) {
+	b := NewWritingStream(10)
 	b.WriteByte('a')
 	b.WriteBytesN([]byte("bcdefghij"), 9)
 
@@ -16,8 +16,8 @@ func TestBuffer(t *testing.T) {
 
 }
 
-func TestBuffer_Copy(t *testing.T) {
-	b := NewBuffer(10)
+func TestStream_Copy(t *testing.T) {
+	b := NewWritingStream(10)
 	b.WriteByte('a')
 	b.WriteBytesN([]byte("bcdefghij"), 9)
 
@@ -37,10 +37,10 @@ func TestBuffer_Copy(t *testing.T) {
 
 }
 
-func TestBuffer_GetByte(t *testing.T) {
+func TestStream_GetByte(t *testing.T) {
 	buf := make([]byte, 1)
 	buf[0] = 0xfe
-	b := NewBufferFromBytes(buf)
+	b := NewStream(buf)
 	val := b.GetByte()
 
 	if b.Error() != nil {
@@ -56,11 +56,11 @@ func TestBuffer_GetByte(t *testing.T) {
 	}
 }
 
-func TestBuffer_GetBytes(t *testing.T) {
+func TestStream_GetBytes(t *testing.T) {
 	buf := make([]byte, 2)
 	buf[0] = 'a'
 	buf[1] = 'b'
-	b := NewBufferFromBytes(buf)
+	b := NewStream(buf)
 
 	val := b.GetBytes(2)
 
@@ -75,7 +75,7 @@ func TestBuffer_GetBytes(t *testing.T) {
 		t.Fatal("Expected 2 got", b.Pos())
 	}
 
-	b = NewBufferFromBytes(buf)
+	b = NewStream(buf)
 
 	val = b.GetBytes(3)
 	if b.Error() == nil {
@@ -86,74 +86,83 @@ func TestBuffer_GetBytes(t *testing.T) {
 	}
 }
 
-func TestBuffer_GetInt8(t *testing.T) {
-	writer := NewBuffer(SizeInt8)
-	writer.WriteInt8(0x0f)
+func TestStream_GetInt8(t *testing.T) {
+	var v1, v2 int8
+	v1 = math.MaxInt8
+
+	writer := NewWritingStream(SizeInt8)
+	writer.Int8(&v1)
 	reader := writer.Copy()
 
-	val := reader.GetInt8()
+	reader.Int8(&v2)
 
 	if reader.Error() != nil {
 		t.Fatal(reader.Error())
 	}
 
-	if val != 0xf {
-		t.Fatalf("expected 0xf got: %x\n", val)
+	if v2 != math.MaxInt8 {
+		t.Fatalf("expected 0xf got: %x\n", v2)
 	}
 
 	buf := make([]byte, SizeInt8)
 	buf[0] = 0xff
-	b := NewBufferFromBytes(buf)
-	val = b.GetInt8()
+	b := NewStream(buf)
+	b.Int8(&v2)
 	if b.Error() != nil {
 		t.Fatal(b.Error())
 	}
 
-	if val != -1 {
-		t.Fatalf("expected -1 got: %x\n", val)
+	if v2 != -1 {
+		t.Fatalf("expected -1 got: %x\n", v2)
 	}
 }
 
-func TestBuffer_GetInt16(t *testing.T) {
-	writer := NewBuffer(SizeInt16)
-	writer.WriteInt16(0x0fff)
+func TestStream_Int16(t *testing.T) {
+	var v1, v2 int16
+	v1 = 0x0fff
+
+	writer := NewWritingStream(SizeInt16)
+	writer.Int16(&v1)
 	reader := writer.Copy()
-	val := reader.GetInt16()
+	reader.Int16(&v2)
 
 	if reader.Error() != nil {
 		t.Fatal(reader.Error())
 	}
 
-	if val != 0x0fff {
-		t.Fatalf("expected 0x0fff got: %x\n", val)
+	if v2 != 0x0fff {
+		t.Fatalf("expected 0x0fff got: %x\n", v2)
 	}
 
 	buf := make([]byte, SizeInt16)
 	buf[0] = 0xff
 	buf[1] = 0xff
-	b := NewBufferFromBytes(buf)
-	val = b.GetInt16()
+	b := NewStream(buf)
+	b.Int16(&v2)
 	if b.Error() != nil {
 		t.Fatal(b.Error())
 	}
 
-	if val != -1 {
-		t.Fatalf("expected -1 got: %x\n", val)
+	if v2 != -1 {
+		t.Fatalf("expected -1 got: %x\n", v2)
 	}
 }
 
-func TestBuffer_GetInt32(t *testing.T) {
-	writer := NewBuffer(SizeInt32)
-	writer.WriteInt32(0x0fffffff)
+func TestStream_Int32(t *testing.T) {
+	var v1, v2 int32
+	v1 = 0x0fffffff
+
+	writer := NewWritingStream(SizeInt32)
+	writer.Int32(&v1)
 	reader := writer.Copy()
 
-	val := reader.GetInt32()
+	reader.Int32(&v2)
 	if reader.Error() != nil {
 		t.Fatal(reader.Error())
 	}
 
-	if val != 0x0fffffff {
-		t.Fatalf("expected 0x0fffffff got: %x\n", val)
+	if v2 != 0x0fffffff {
+		t.Fatalf("expected 0x0fffffff got: %x\n", v2)
 	}
 
 	buf := make([]byte, SizeInt32)
@@ -161,98 +170,110 @@ func TestBuffer_GetInt32(t *testing.T) {
 	buf[1] = 0xff
 	buf[2] = 0xff
 	buf[3] = 0xff
-	b := NewBufferFromBytes(buf)
-	val = b.GetInt32()
+	b := NewStream(buf)
+	b.Int32(&v2)
 	if b.Error() != nil {
 		t.Fatal(b.Error())
 	}
 
-	if val != -1 {
-		t.Fatalf("expected -1 got: %x\n", val)
+	if v2 != -1 {
+		t.Fatalf("expected -1 got: %x\n", v2)
 	}
 }
 
-func TestBuffer_GetInt64(t *testing.T) {
-	writer := NewBuffer(SizeInt64)
-	writer.WriteInt64(0xf3f3f3f3f3f3)
+func TestStream_Int64(t *testing.T) {
+	var v1, v2 int64
+	v1 = 0xf3f3f3f3f3f3
+
+	writer := NewWritingStream(SizeInt64)
+	writer.Int64(&v1)
 	reader := writer.Copy()
 
-	val := reader.GetInt64()
+	reader.Int64(&v2)
 
 	if reader.Error() != nil {
 		t.Fatal(reader.Error())
 	}
 
-	if val != 0xf3f3f3f3f3f3 {
-		t.Fatalf("expected 0xf3f3f3f3f3f3 got: %x\n", val)
+	if v2 != 0xf3f3f3f3f3f3 {
+		t.Fatalf("expected 0xf3f3f3f3f3f3 got: %x\n", v2)
 	}
 }
 
-func TestBuffer_GetUint8(t *testing.T) {
-	writer := NewBuffer(SizeUint8)
-	writer.WriteUint8(0xff)
+func TestStream_Uint8(t *testing.T) {
+	writer := NewWritingStream(SizeUint8)
+	var v uint8 = 0xff
+	writer.Uint8(&v)
 	reader := writer.Copy()
+	reader.reading = true
 
-	val := reader.GetUint8()
+	var v2 uint8
+	reader.Uint8(&v2)
 
 	if reader.Error() != nil {
 		t.Fatal(reader.Error())
 	}
 
-	if val != 0xff {
-		t.Fatalf("expected 0xff got: %x\n", val)
+	if v2 != 0xff {
+		t.Fatalf("expected 0xff got: %x\n", v2)
 	}
 }
 
-func TestBuffer_GetUint16(t *testing.T) {
-	writer := NewBuffer(SizeUint16)
-	writer.WriteUint16(0xffff)
+func TestStream_Uint16(t *testing.T) {
+	writer := NewWritingStream(SizeUint16)
+	var v1 uint16 = 0xffff
+	writer.Uint16(&v1)
 	reader := writer.Copy()
 
-	val := reader.GetUint16()
+	var v2 uint16
+	reader.Uint16(&v2)
 	if reader.Error() != nil {
 		t.Fatal(reader.Error())
 	}
 
-	if val != 0xffff {
-		t.Fatalf("expected 0xffff got: %x\n", val)
+	if v2 != 0xffff {
+		t.Fatalf("expected 0xffff got: %x\n", v2)
 	}
-
 }
 
-func TestBuffer_GetUint32(t *testing.T) {
-	writer := NewBuffer(SizeUint32)
-	writer.WriteUint32(0xffffffff)
+func TestStream_Uint32(t *testing.T) {
+	writer := NewWritingStream(SizeUint32)
+	var v1 uint32 = 0xffffffff
+	writer.Uint32(&v1)
 	reader := writer.Copy()
 
-	val := reader.GetUint32()
+	var v2 uint32
+	reader.Uint32(&v2)
 	if reader.Error() != nil {
 		t.Fatal(reader.Error())
 	}
 
-	if val != 0xffffffff {
-		t.Fatalf("expected 0xffffffff got: %x\n", val)
+	if v2 != 0xffffffff {
+		t.Fatalf("expected 0xffffffff got: %x\n", v2)
 	}
 }
 
-func TestBuffer_GetUint64(t *testing.T) {
-	writer := NewBuffer(SizeUint64)
-	writer.WriteUint64(0xffffffffffffffff)
+func TestStream_Uint64(t *testing.T) {
+	var v1, v2 uint64
+	v1 = 0xffffffffffffffff
+
+	writer := NewWritingStream(SizeUint64)
+	writer.Uint64(&v1)
 	reader := writer.Copy()
 
-	val := reader.GetUint64()
+	reader.Uint64(&v2)
 
 	if reader.Error() != nil {
 		t.Fatal(reader.Error())
 	}
 
-	if val != 0xffffffffffffffff {
-		t.Fatalf("expected 0xffffffffffffffff got: %x\n", val)
+	if v2 != 0xffffffffffffffff {
+		t.Fatalf("expected 0xffffffffffffffff got: %x\n", v2)
 	}
 }
 
-func TestBuffer_Len(t *testing.T) {
-	b := NewBuffer(10)
+func TestStream_Len(t *testing.T) {
+	b := NewWritingStream(10)
 	b.WriteByte('a')
 	b.WriteBytesN([]byte("bcdefghij"), 9)
 
@@ -261,8 +282,8 @@ func TestBuffer_Len(t *testing.T) {
 	}
 }
 
-func TestBuffer_WriteBytes(t *testing.T) {
-	w := NewBuffer(10)
+func TestStream_WriteBytes(t *testing.T) {
+	w := NewWritingStream(10)
 	w.WriteBytes([]byte("0123456789"))
 	r := w.Copy()
 	val := r.GetBytes(10)
@@ -273,33 +294,38 @@ func TestBuffer_WriteBytes(t *testing.T) {
 	if string(val) != "0123456789" {
 		t.Fatalf("expected 0123456789 got: %s %d\n", val, len(val))
 	}
-
 }
 
-func TestBuffer_GetFloat32(t *testing.T) {
-	w := NewBuffer(4)
-	w.WriteFloat32(math.MaxFloat32)
+func TestStream_Float32(t *testing.T) {
+	var v1, v2 float32
+	v1 = math.MaxFloat32
+
+	w := NewWritingStream(4)
+	w.Float32(&v1)
 	r := w.Copy()
-	result := r.GetFloat32()
+	r.Float32(&v2)
 	if r.Error() != nil {
 		t.Fatal(r.Error())
 	}
 
-	if result != math.MaxFloat32 {
-		t.Fatal("expected ", math.MaxFloat32, " got ", result)
+	if v2 != math.MaxFloat32 {
+		t.Fatal("expected ", math.MaxFloat32, " got ", v2)
 	}
 }
 
-func TestBuffer_GetFloat64(t *testing.T) {
-	w := NewBuffer(8)
-	w.WriteFloat64(math.MaxFloat64)
+func TestStream_GetFloat64(t *testing.T) {
+	var v1, v2 float64
+	v1 = math.MaxFloat64
+
+	w := NewWritingStream(8)
+	w.Float64(&v1)
 	r := w.Copy()
-	result := r.GetFloat64()
+	r.Float64(&v2)
 	if r.Error() != nil {
 		t.Fatal(r.Error())
 	}
 
-	if result != math.MaxFloat64 {
-		t.Fatal("expected ", math.MaxFloat32, " got ", result)
+	if v2 != math.MaxFloat64 {
+		t.Fatal("expected ", math.MaxFloat64, " got ", v2)
 	}
 }

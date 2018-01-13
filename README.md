@@ -1,11 +1,10 @@
 binserializer
 =============
 
-A super simple binary serializer/deserializer for go. Manages the position of a buffer allowing you to
-easily read or write to a byte buffer.
+Serializer helper inspired by https://gafferongames.com/post/serialization_strategies/
 
 ## Documentation
-[godocs](https://godoc.org/github.com/wirepair/binserializer) 
+[godocs](https://godoc.org/github.com/jakecoffman/binserializer) 
 
-## Author
+## Originally forked from
 [Isaac Dawson](https://github.com/wirepair)
