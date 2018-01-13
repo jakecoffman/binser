@@ -1,4 +1,4 @@
-package binserializer
+package binser
 
 // Taken from https://raw.githubusercontent.com/google/flatbuffers/master/go/sizes.go
 import (

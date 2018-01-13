@@ -1,4 +1,4 @@
-binserializer
+binser
 =============
 
 Serializer helper inspired by https://gafferongames.com/post/serialization_strategies/
@@ -7,4 +7,4 @@ Serializer helper inspired by https://gafferongames.com/post/serialization_strat
 [godocs](https://godoc.org/github.com/jakecoffman/binserializer) 
 
 ## Originally forked from
-[Isaac Dawson](https://github.com/wirepair)
+[Isaac Dawson](https://github.com/wirepair/binserializer)

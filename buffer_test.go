@@ -1,4 +1,4 @@
-package binserializer
+package binser
 
 import (
 	"testing"
